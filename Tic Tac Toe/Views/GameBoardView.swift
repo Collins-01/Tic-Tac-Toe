@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct GameBoardView: View {
     let columns:[GridItem]=[GridItem(.flexible()),GridItem(.flexible()),GridItem(.flexible())]
     @State private var move:[Move?]=Array(repeating: nil , count: 9)
     @State private var isGamBoardDisabled=false
@@ -37,10 +37,20 @@ struct ContentView: View {
                             }
                             move[i]=Move(player:  .human ,   cellIndex: i)
                             isGamBoardDisabled = true
+                            
+                            if checkWinCondition(for : .human , in: move) {
+                                print("HUMAN WINS!!")
+                            }
+                            
+                            //                            BELOW, IS THE ALGORITHM FOR THE COMPUTER MOVES
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                 let computerPosition = determineComputerMovePosition(in: move)
                                 move[computerPosition] = Move(player: .computer, cellIndex: computerPosition)
                                 isGamBoardDisabled = false
+                                if checkWinCondition(for : .computer , in: move) {
+                                    print("COMPUTER WINS!!")
+                                }
+                                
                                 
                             }
                             
@@ -65,14 +75,24 @@ struct ContentView: View {
         return newMovePositon
     }
     
-    func checkWinCondition(in player:Player , in moves: [Move?]) -> Bool {
+    func checkWinCondition(for player : Player , in moves : [Move?]) -> Bool {
+        let winPatterns : Set<Set<Int>> = [
+            [0,1,2],[3,4,4], [6,7,8], [0,3,6], [1,4,7],[2,5,8],[0,4,8],[2,4,6]
+        ]
+        //            Removes all the Nil Cells on the Gameboard, and returns the Cells
+        let playerMoves = moves.compactMap{ $0 }.filter{ $0.player == player}
+        //        returns the cell moves for a particular player
+        let playerPositions = Set(playerMoves.map{ $0.cellIndex })
+        for pattern in winPatterns where pattern.isSubset(of: playerPositions) {
+            return true
+        }
         return false
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
+struct GameBoardView_Preview: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        GameBoardView()
     }
 }
 //sparkles
